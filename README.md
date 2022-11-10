@@ -2,14 +2,13 @@
 
 Variable            | Default                       | Description
 ------------------- | ----------------------------- | ------------
-`HUB_HOST`          | `127.0.0.1`                   |
-`HUB_PORT`          | `8730`                        |
-`PROBE_SERVER_PORT` | `8750`                        |
-`AGENTCORE_JSON`    | `/data/.agentcore.json`       |
-`CONTAINER_ID`      | `0`                           |
-`AGENTCORE_ID`      | `0`                           |
-`ZONE_ID`           | `0`                           |
-`TOKEN`             | ``                            |
+`TOKEN`             | _required_                    | Token for authentication.
+`AGENTCORE_ZONE`    | `0`                           | Zone _(integer)_ for the Agentcore.
+`AGENTCORE_NAME`    | _fqdn_                        | Name for the Agentcore. If not given, the fqdn is used.
+`AGENTCORE_JSON`    | `/data/.agentcore.json`       | JSON file where the Agentcore Id is stored.
+`HUB_HOST`          | `hub.infrasonar.com`          | InfraSonar Hub address.
+`HUB_PORT`          | `8730`                        | InfraSonar Hub TCP Port to connect to. _(should be the default 8730 for InfraSonar)_
+`PROBE_SERVER_PORT` | `8750`                        | Probe connection TCP port.
 `LOG_LEVEL`         | `warning`                     | Log level (`debug`, `info`, `warning`, `error` or `critical`).
 `LOG_COLORIZED`     | `0`                           | Log using colors (`0`=disabled, `1`=enabled).
 `LOG_FTM`           | `%y%m%d %H:%M:%S`             | Log format prefix.

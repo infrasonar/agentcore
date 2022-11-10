@@ -3,8 +3,10 @@ import json
 import logging
 import os
 import ssl
+from typing import Optional, List
 from .net.package import Package
 from .protocol import HubProtocol
+from .state import State
 
 HUB_QUEUE_SIZE = 100000
 HUB_QUEUE_SLEEP = .001
@@ -12,16 +14,16 @@ HUB_QUEUE_SLEEP = .001
 HUB_HOST = os.getenv('HUB_HOST', 'hub.infrasonar.com')
 HUB_PORT = int(os.getenv('HUB_PORT', 8730))
 
-AGENTCORE_ID_FN = os.getenv('AGENTCORE_JSON', '/data/.agentcore.json')
-if not os.path.exists(AGENTCORE_ID_FN):
+AGENTCORE_JSON_FN = os.getenv('AGENTCORE_JSON', '/data/.agentcore.json')
+if not os.path.exists(AGENTCORE_JSON_FN):
     logging.info('agentcore id file not found. creating a new one')
     try:
-        if not os.path.exists(os.path.dirname(AGENTCORE_ID_FN)):
-            os.makedirs(os.path.dirname(AGENTCORE_ID_FN))
-        with open(AGENTCORE_ID_FN, 'w') as fp:
+        if not os.path.exists(os.path.dirname(AGENTCORE_JSON_FN)):
+            os.makedirs(os.path.dirname(AGENTCORE_JSON_FN))
+        with open(AGENTCORE_JSON_FN, 'w') as fp:
             json.dump(None, fp)
     except Exception:
-        logging.exception('failed to create agentcore_id file\n')
+        logging.exception('failed to create agentcore JSON file\n')
         exit(1)
 AGENTCORE_HUB_CRT = os.getenv('AGENTCORE_HUB_CRT', 'certificates/hub.crt')
 if not os.path.exists(AGENTCORE_HUB_CRT):
@@ -29,23 +31,18 @@ if not os.path.exists(AGENTCORE_HUB_CRT):
     exit(1)
 
 
-class HubClient:
+class Agentcore:
+    queue: asyncio.Queue
+    _connecting: bool
+    _protocol: Optional[HubProtocol]
+    _queue_fut: Optional[asyncio.Future]
 
-    def __init__(
-        self,
-        container_id: int,
-        agentcore_id: int,
-        zone: int,
-        token: str,
-    ):
-        self.container_id = container_id
-        self.agentcore_id = agentcore_id or self._read_id()
-        self.zone = zone
-        self.token = token
+    def __init__(self):
         self.queue = asyncio.Queue(maxsize=HUB_QUEUE_SIZE)
         self._connecting = False
         self._protocol = None
         self._queue_fut = None
+        self._read_json()
 
     def is_connected(self) -> bool:
         return self._protocol is not None and self._protocol.is_connected()
@@ -58,7 +55,7 @@ class HubClient:
         step = 2
         max_step = 2 ** 7
 
-        while 1:
+        while True:
             if not self.is_connected() and not self.is_connecting():
                 asyncio.ensure_future(self._connect())
                 step = min(step * 2, max_step)
@@ -82,27 +79,25 @@ class HubClient:
         try:
             _, self._protocol = await asyncio.wait_for(conn, timeout=10)
         except Exception as e:
-            logging.error(f'connecting to hub failed: {e}')
+            msg = str(e) or type(e).__name__
+            logging.error(f'connecting to hub failed: {msg}')
         else:
             pkg = Package.make(
                 HubProtocol.PROTO_REQ_ANNOUNCE,
                 data=[
-                    self.container_id,
-                    self.agentcore_id,
-                    self.zone,
-                    self.token
+                    State.agentcore_id,
+                    State.name,
+                    State.zone,
+                    State.token
                 ]
             )
             if self._protocol and self._protocol.transport:
                 try:
-                    id = await self._protocol.request(pkg, timeout=10)
+                    await self._protocol.request(pkg, timeout=10)
                 except Exception as e:
                     logging.error(e)
                 else:
-                    if self.agentcore_id is None:
-                        self.agentcore_id = id
-                        self._on_announced_new_id(id)
-
+                    self._dump_json()
                     if self._queue_fut is None or self._queue_fut.done():
                         self._queue_fut = \
                             asyncio.ensure_future(self._empty_queue_loop())
@@ -122,17 +117,18 @@ class HubClient:
             try:
                 await self._protocol.request(pkg, timeout=10)
             except Exception as e:
-                logging.error(e)
+                msg = str(e) or type(e).__name__
+                logging.error(msg)
 
             await asyncio.sleep(HUB_QUEUE_SLEEP)
 
-    def _read_id(self):
-        with open(AGENTCORE_ID_FN) as fp:
-            json.load(fp)
+    def _read_json(self):
+        with open(AGENTCORE_JSON_FN) as fp:
+            State.agentcore_id = json.load(fp)
 
-    def _on_announced_new_id(self, id):
-        with open(AGENTCORE_ID_FN, 'w') as fp:
-            json.dump(id, fp)
+    def _dump_json(self):
+        with open(AGENTCORE_JSON_FN, 'w') as fp:
+            json.dump(State.agentcore_id, fp)
 
     def close(self):
         if self._queue_fut is not None:

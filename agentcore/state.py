@@ -1,19 +1,30 @@
 from __future__ import annotations
-from typing import Set, TYPE_CHECKING
+from typing import Optional, List, Set, TYPE_CHECKING
 from collections import defaultdict
 from weakref import WeakSet
+from .zones import Zones
 if TYPE_CHECKING:
     from .connection.probeserverprotocol import ProbeServerProtocol
 
 
 PATH_IDX, NAMES_IDX, CONFIG_IDX = range(3)
-CONTAINER_ID, ASSET_ID, CHECK_ID = range(3)
+ASSET_ID, ZONE, CHECK_ID = range(2)
 
 
 class State:
-    hubclient = None
+    agentcore = None
     probe_connections: Set[ProbeServerProtocol] = WeakSet()
     probe_assets = defaultdict(list)
+    zone: int = 0
+    name: str
+    token: str
+    agentcore_id: Optional[int] = None  # from JSON/announce
+    zones: Optionl[Zones] = None  # after announce
+
+    @classmethod
+    def set_zones(cls, agentcores: List[List[int, int]]):
+        zones = Zones(cls.agentcore_id, cls.zone, agentcores)
+        cls.zones = zones
 
     @classmethod
     def unset_assets(cls, asset_ids: list):
@@ -31,7 +42,7 @@ class State:
     @classmethod
     def upsert_asset(cls, asset: list):
         """Update or add a single asset."""
-        container_id, asset_id, asset_name, probes, checks = asset
+        asset_id, asset_zone, asset_name, probes, checks = asset
 
         # first remove all checks for the current asset
         for assets in cls.probe_assets.values():
@@ -39,11 +50,15 @@ class State:
                 if check[PATH_IDX][ASSET_ID] == asset_id:
                     del assets[i]
 
+        if not cls.zones.has_asset(asset_id, asset_zone):
+            conn.send_unset_assets([asset_id])
+            return
+
         new = defaultdict(list)
         for probe_name, probe_config, checks_ in probes:
             for check_id, check_name, interval, check_config in checks_:
                 new[probe_name].append([
-                    [container_id, asset_id, check_id],
+                    [asset_id, check_id],
                     [asset_name, check_name],
                     {
                         '_interval': interval,
@@ -59,15 +74,17 @@ class State:
             conn.send_upsert_asset([asset_id, new[conn.probe_name]])
 
     @classmethod
-    def set_assets(cls, assets: list):
+    def set_assets(cls, assets: list, agent):
         """Overwites all the assets."""
         new = defaultdict(list)
-        for container_id, asset_id, asset_name, probes, checks in assets:
+        for asset_id, asset_zone, asset_name, probes, checks in assets:
+            if not cls.zones.has_asset(asset_id, asset_zone):
+                continue
             checks = dict(checks)
             for probe_name, probe_config, checks_ in probes:
                 for check_id, check_name, interval in checks_:
                     new[probe_name].append([
-                        [container_id, asset_id, check_id],
+                        [asset_id, check_id],
                         [asset_name, check_name],
                         {
                             '_interval': interval,
@@ -85,4 +102,4 @@ class State:
         for conn in cls.probe_connections:
             conn.close()
 
-        cls.hubclient.close()
+        cls.agentcore.close()

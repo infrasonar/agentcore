@@ -59,7 +59,7 @@ class ProbeServerProtocol(Protocol):
 
     def _on_faf_dump(self, pkg):
         try:
-            State.hubclient.queue.put_nowait(pkg)
+            State.agentcore.queue.put_nowait(pkg)
         except asyncio.QueueFull:
             logging.error('hub queue full')
 
