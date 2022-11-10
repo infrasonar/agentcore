@@ -8,7 +8,7 @@ if TYPE_CHECKING:
 
 
 PATH_IDX, NAMES_IDX, CONFIG_IDX = range(3)
-ASSET_ID, ZONE, CHECK_ID = range(2)
+ASSET_ID, ZONE, CHECK_ID = range(3)
 
 
 class State:
@@ -19,7 +19,7 @@ class State:
     name: str
     token: str
     agentcore_id: Optional[int] = None  # from JSON/announce
-    zones: Optionl[Zones] = None  # after announce
+    zones: Optional[Zones] = None  # after announce
 
     @classmethod
     def set_zones(cls, agentcores: List[List[int, int]]):
@@ -41,7 +41,7 @@ class State:
     @classmethod
     def upsert_asset(cls, asset: list):
         """Update or add a single asset."""
-        asset_id, asset_zone, asset_name, probes, checks = asset
+        asset_id, asset_zone, asset_name, probes = asset
 
         # first remove all checks for the current asset
         for assets in cls.probe_assets.values():
@@ -73,22 +73,21 @@ class State:
             conn.send_upsert_asset([asset_id, new[conn.probe_name]])
 
     @classmethod
-    def set_assets(cls, assets: list, agent):
+    def set_assets(cls, assets: list):
         """Overwites all the assets."""
         new = defaultdict(list)
-        for asset_id, asset_zone, asset_name, probes, checks in assets:
+        for asset_id, asset_zone, asset_name, probes in assets:
             if not cls.zones.has_asset(asset_id, asset_zone):
                 continue
-            checks = dict(checks)
             for probe_name, probe_config, checks_ in probes:
-                for check_id, check_name, interval in checks_:
+                for check_id, check_name, interval, check_config in checks_:
                     new[probe_name].append([
                         [asset_id, check_id],
                         [asset_name, check_name],
                         {
                             '_interval': interval,
                             **(probe_config or {}),  # can be empty
-                            **(checks.get(check_id) or {}),  # can be empty
+                            **(check_config or {}),  # can be empty
                         },
                     ])
         cls.probe_assets = new
