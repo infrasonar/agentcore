@@ -3,8 +3,8 @@
 Variable            | Default                       | Description
 ------------------- | ----------------------------- | ------------
 `TOKEN`             | _required_                    | Token for authentication.
-`AGENTCORE_ZONE`    | `0`                           | Zone _(integer)_ for the Agentcore.
 `AGENTCORE_NAME`    | _fqdn_                        | Name for the Agentcore. If not given, the fqdn is used.
+`AGENTCORE_ZONE`    | `0`                           | Zone _(integer)_ for the Agentcore.
 `AGENTCORE_JSON`    | `/data/.agentcore.json`       | JSON file where the Agentcore Id is stored.
 `HUB_HOST`          | `hub.infrasonar.com`          | InfraSonar Hub address.
 `HUB_PORT`          | `8730`                        | InfraSonar Hub TCP Port to connect to. _(should be the default 8730 for InfraSonar)_

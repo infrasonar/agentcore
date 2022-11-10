@@ -16,7 +16,7 @@ HUB_PORT = int(os.getenv('HUB_PORT', 8730))
 
 AGENTCORE_JSON_FN = os.getenv('AGENTCORE_JSON', '/data/.agentcore.json')
 if not os.path.exists(AGENTCORE_JSON_FN):
-    logging.info('agentcore id file not found. creating a new one')
+    logging.info('agentcore JSON file not found. creating a new one')
     try:
         if not os.path.exists(os.path.dirname(AGENTCORE_JSON_FN)):
             os.makedirs(os.path.dirname(AGENTCORE_JSON_FN))

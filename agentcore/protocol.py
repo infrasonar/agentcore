@@ -39,13 +39,13 @@ class HubProtocol(Protocol):
         future = self._get_future(pkg)
         if future is None:
             return
-        future.set_result(agentcore_id)
+        future.set_result(None)
 
     def _on_faf_set_assets(self, pkg: Package):
-        assets = pkg.read_data()
+        agentcores, assets = pkg.read_data()
         logging.debug(f'ac set assets {len(assets)}')
+        State.set_zones(agentcores)
         State.set_assets(assets)
-        State.set_zone
 
     def _on_req_info(self, pkg: Package):
         asyncio.ensure_future(self._req_info(pkg))

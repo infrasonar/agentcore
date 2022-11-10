@@ -23,8 +23,7 @@ class State:
 
     @classmethod
     def set_zones(cls, agentcores: List[List[int, int]]):
-        zones = Zones(cls.agentcore_id, cls.zone, agentcores)
-        cls.zones = zones
+        cls.zones = Zones(cls.agentcore_id, cls.zone, agentcores)
 
     @classmethod
     def unset_assets(cls, asset_ids: list):
