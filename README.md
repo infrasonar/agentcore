@@ -1,4 +1,9 @@
-# agentcore
+[![CI](https://github.com/infrasonar/agentcore/workflows/CI/badge.svg)](https://github.com/infrasonar/agentcore/actions)
+[![Release Version](https://img.shields.io/github/release/infrasonar/agentcore)](https://github.com/infrasonar/agentcore/releases)
+
+# Infrasonar Agentcore
+
+This is the InfraSonar Agentcore and is used for communication between _hub.infrasonar.com_ and probe collectors.
 
 Variable            | Default                       | Description
 ------------------- | ----------------------------- | ------------
