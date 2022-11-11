@@ -50,7 +50,8 @@ class State:
                     del assets[i]
 
         if not cls.zones.has_asset(asset_id, asset_zone):
-            conn.send_unset_assets([asset_id])
+            for conn in cls.probe_connections:
+                conn.send_unset_assets([asset_id])
             return
 
         new = defaultdict(list)
