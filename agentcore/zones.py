@@ -1,4 +1,4 @@
-from typing import List
+from typing import Tuple
 
 
 class Zones:
@@ -6,7 +6,7 @@ class Zones:
             self,
             agentcore_id: int,
             zone: int,
-            agentcores: List[List[int, int]]):
+            agentcores: Tuple[Tuple[int, int]]):
         agentcores = sorted(agentcores)
         zone_ids = []
         all_ids = []
@@ -21,8 +21,8 @@ class Zones:
         self._zone = zone
         self._zone_idx = zone_ids.index(agentcore_id)
         self._zone_mod = len(zone_ids)
-        self._all_idx = ids.index(agentcore_id)
-        self._all_mod = len(ids)
+        self._all_idx = all_ids.index(agentcore_id)
+        self._all_mod = len(all_ids)
         self._zones = zones
 
     def has_asset(self, asset_id: int, asset_zone: int) -> bool:
