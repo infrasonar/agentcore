@@ -61,7 +61,8 @@ class Agentcore:
                 step = min(step * 2, max_step)
             else:
                 step = initial_step
-            await asyncio.sleep(step)
+            for _ in range(step):
+                await asyncio.sleep(1)
 
     async def _connect(self):
         ctx = ssl.create_default_context(ssl.Purpose.SERVER_AUTH)

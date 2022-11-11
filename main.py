@@ -39,12 +39,13 @@ if __name__ == '__main__':
     loop = asyncio.get_event_loop()
     init_probe_server(loop)
 
-    loop.run_until_complete(State.agentcore.start())
-
     signal.signal(signal.SIGINT, stop)
     signal.signal(signal.SIGTERM, stop)
 
-    loop.run_forever()
+    try:
+        loop.run_until_complete(State.agentcore.start())
+    except asyncio.exceptions.CancelledError:
+        pass
 
     State.stop()
 
