@@ -95,3 +95,7 @@ class ProbeServerProtocol(Protocol):
             logging.error(f'unhandled package type: {pkg.tp}')
         else:
             handle(self, pkg)
+
+    def close(self):
+        if self.transport:
+            self.transport.close()
