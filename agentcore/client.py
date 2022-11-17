@@ -122,7 +122,7 @@ class Agentcore:
                 logging.error(msg)
 
             await asyncio.sleep(HUB_QUEUE_SLEEP)
-    
+
     def _on_connection_lost(self):
         self._queue_fut.cancel()
 
