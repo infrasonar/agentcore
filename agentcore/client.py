@@ -70,7 +70,7 @@ class Agentcore:
         ctx.load_verify_locations(AGENTCORE_HUB_CRT)
 
         conn = asyncio.get_event_loop().create_connection(
-            HubProtocol,
+            lambda: HubProtocol(self._on_connection_lost),
             host=HUB_HOST,
             port=HUB_PORT,
             ssl=ctx
@@ -122,6 +122,9 @@ class Agentcore:
                 logging.error(msg)
 
             await asyncio.sleep(HUB_QUEUE_SLEEP)
+
+    def _on_connection_lost(self):
+        self._queue_fut.cancel()
 
     def _read_json(self):
         with open(AGENTCORE_JSON_FN) as fp:

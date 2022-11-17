@@ -1,6 +1,7 @@
 import asyncio
 import logging
 import time
+from typing import Optional, Callable
 from .net.package import Package
 from .net.protocol import Protocol
 from .state import State
@@ -28,6 +29,18 @@ class HubProtocol(Protocol):
     PROTO_RES_ERR = 0xe0
 
     PROTO_RES_OK = 0xe1
+
+    def __init__(self, connection_lost: Callable):
+        super().__init__()
+        self.set_connection_lost(connection_lost)
+
+    def connection_lost(self, exc: Optional[Exception]):
+        super().connection_lost(exc)
+        if self._connection_lost:
+            self._connection_lost()
+
+    def set_connection_lost(self, connection_lost: Callable):
+        self._connection_lost = connection_lost
 
     def _on_res_announce(self, pkg: Package):
         agentcore_id, agentcores, assets = pkg.read_data()
