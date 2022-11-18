@@ -1,6 +1,7 @@
 import asyncio
 import logging
 import time
+from typing import Optional
 from ..net.package import Package
 from ..net.protocol import Protocol
 from ..state import State
@@ -30,6 +31,14 @@ class ProbeServerProtocol(Protocol):
         super().__init__()
         self.probe_name = None
         self.version = None
+
+    def connection_lost(self, exc: Optional[Exception]):
+        logging.info(f'Connecion lost; probe name: `{self.probe_name}`')
+        super().connection_lost(exc)
+        try:
+            State.probe_connections.remove(self)
+        except KeyError:
+            pass
 
     async def on_heartbeat(self):
         pkg = Package.make(ProbeServerProtocol.PROTO_REQ_INFO)

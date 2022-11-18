@@ -13,7 +13,7 @@ ASSET_ID, ZONE, CHECK_ID = range(3)
 
 class State:
     agentcore = None
-    probe_connections: Set[ProbeServerProtocol] = WeakSet()
+    probe_connections: Set[ProbeServerProtocol] = set()
     probe_assets = defaultdict(list)
     zone: int = 0
     name: str
