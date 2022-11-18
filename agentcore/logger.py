@@ -2,8 +2,8 @@ import colorlog
 import logging.handlers
 import os
 
-_LOG_LEVEL = os.getenv('LOG_LEVEL', 'warning')
-_LOG_COLORIZED = int(os.getenv('LOG_COLORIZED', '0'))
+_LOG_LEVEL = os.getenv('LOG_LEVEL', 'info')
+_LOG_COLORIZED = int(os.getenv('LOG_COLORIZED', '1'))
 _LOG_DATE_FMT = os.getenv('LOG_FMT', '%y%m%d %H:%M:%S')
 
 

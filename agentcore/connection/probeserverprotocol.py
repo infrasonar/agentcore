@@ -87,7 +87,9 @@ class ProbeServerProtocol(Protocol):
 
             assets = State.probe_assets.get(name)
             if assets is None:
-                raise Exception(f'no assets found for probe collector: {name}')
+                logging.warning(
+                    f'no assets found for probe collector: {name}')
+                assets = []
 
             resp_pkg = Package.make(
                 ProbeServerProtocol.PROTO_RES_ANNOUNCE,
