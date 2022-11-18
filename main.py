@@ -30,6 +30,8 @@ if __name__ == '__main__':
     setproctitle('agentcore')
     setup_logger()
 
+    logging.warning(f'Stating agentcore v{version}')
+
     State.name = AGENTCORE_NAME
     State.token = TOKEN
     State.zone = AGENTCORE_ZONE

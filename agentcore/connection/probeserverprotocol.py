@@ -34,7 +34,13 @@ class ProbeServerProtocol(Protocol):
     async def on_heartbeat(self):
         pkg = Package.make(ProbeServerProtocol.PROTO_REQ_INFO)
         t0 = time.time()
-        probe_timestamp = await self.request(pkg, timeout=10)
+        try:
+            probe_timestamp = await self.request(pkg, timeout=10)
+        except Exception as e:
+            msg = str(e) or type(e).__name__
+            logging.error(msg)
+            probe_timestamp = 1  # don't want the heartbeat to fail
+
         return {
             'name': self.probe_name,
             'version': self.version,
@@ -64,26 +70,59 @@ class ProbeServerProtocol(Protocol):
             logging.error('hub queue full')
 
     def _on_req_announce(self, pkg: Package):
-        probe_name, version = pkg.read_data()
+        try:
+            try:
+                name, version = pkg.read_data()
+            except Exception as e:
+                msg = str(e) or type(e).__name__
+                raise Exception(f'unpack announce response failed: {msg}')
 
-        # TODOK
-        assert not any(
-            conn.probe_name == probe_name for conn in State.probe_connections)
+            logging.info(f'probe collector announce: {name} v{verssion}')
 
-        assets = State.probe_assets[probe_name]
-        resp_pkg = Package.make(
-            ProbeServerProtocol.PROTO_RES_ANNOUNCE, pid=pkg.pid, data=assets)
-        self.transport.write(resp_pkg.to_bytes())
+            for conn in State.probe_connections:
+                if conn.probe_name == name:
+                    raise Exception(
+                        'got a double probe collector announcement: '
+                        f'{name} v{conn.version}; close the connection')
 
-        self.probe_name = probe_name
-        self.version = version
-        State.probe_connections.add(self)
+            assets = State.probe_assets.get(name)
+            if assets is None:
+                raise Exception(f'no assets found for probe collector: {name}')
+
+            resp_pkg = Package.make(
+                ProbeServerProtocol.PROTO_RES_ANNOUNCE,
+                pid=pkg.pid,
+                data=assets)
+
+            try:
+                self.transport.write(resp_pkg.to_bytes())
+            except Exception as e:
+                msg = str(e) or type(e).__name__
+                raise Exception(f'failed to write announce response: {msg}')
+
+            self.probe_name = name
+            self.version = version
+            State.probe_connections.add(self)
+
+        except Exception as e:
+            logging.error(f'{e}; close the connection')
+            try:
+                self.transport.close()
+            except Exception as e:
+                msg = str(e) or type(e).__name__
+                logging.error(f'attempt to close connection has failed: {msg}')
 
     def _on_res_info(self, pkg: Package):
         future = self._get_future(pkg)
         if future is None:
             return
-        future.set_result(pkg.read_data())
+        try:
+            data = pkg.read_data()
+        except Exception as e:
+            msg = str(e) or type(e).__name__
+            future.set_exception(f'unpack probe info data failed: {msg}')
+        else:
+            future.set_result(data)
 
     def on_package_received(self, pkg: Package, _map={
         PROTO_FAF_DUMP: _on_faf_dump,

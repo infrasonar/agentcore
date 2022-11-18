@@ -43,8 +43,17 @@ class HubProtocol(Protocol):
         self._connection_lost = connection_lost
 
     def _on_res_announce(self, pkg: Package):
-        agentcore_id, agentcores, assets = pkg.read_data()
-        logging.debug(f'ac announce {len(assets)}')
+        try:
+            agentcore_id, agentcores, assets = pkg.read_data()
+        except Exception as e:
+            msg = str(e) or type(e).__name__
+            logging.error(f'ac announce failed: {msg}')
+            return
+        logging.info(
+            'ac announce <'
+            f'agentcore_id: {agentcore_id} '
+            f'num assets: {len(assets)} '
+            f'num agentcores: {len(agentcores)}>')
         State.agentcore_id = agentcore_id
         State.set_zones(agentcores)
         State.set_assets(assets)
@@ -55,8 +64,13 @@ class HubProtocol(Protocol):
         future.set_result(None)
 
     def _on_faf_set_assets(self, pkg: Package):
-        agentcores, assets = pkg.read_data()
-        logging.debug(f'ac set assets {len(assets)}')
+        try:
+            agentcores, assets = pkg.read_data()
+        except Exception as e:
+            msg = str(e) or type(e).__name__
+            logging.error(f'ac set assets failed: {msg}')
+            return
+        logging.info(f'ac set assets <num assets: {len(assets)}>')
         State.set_zones(agentcores)
         State.set_assets(assets)
 
@@ -64,13 +78,25 @@ class HubProtocol(Protocol):
         asyncio.ensure_future(self._req_info(pkg))
 
     def _on_faf_upsert_asset(self, pkg: Package):
-        asset = pkg.read_data()
-        logging.debug(f'ac upsert asset id {asset[0]}')
+        try:
+            asset = pkg.read_data()
+        except Exception as e:
+            msg = str(e) or type(e).__name__
+            logging.error(f'ac upsert asset failed: {msg}')
+            return
+
+        logging.info(f'ac upsert asset id {asset[0]}')
         State.upsert_asset(asset)
 
     def _on_faf_unset_assets(self, pkg: Package):
-        asset_ids = pkg.read_data()
-        logging.debug(f'ac unset assets {len(asset_ids)}')
+        try:
+            asset_ids = pkg.read_data()
+        except Exception as e:
+            msg = str(e) or type(e).__name__
+            logging.error(f'ac upsert asset failed: {msg}')
+            return
+
+        logging.info(f'ac unset assets <num assets: {len(asset_ids)}>')
         State.unset_assets(asset_ids)
 
     async def _req_info(self, pkg: Package):
@@ -96,7 +122,12 @@ class HubProtocol(Protocol):
         future = self._get_future(pkg)
         if future is None:
             return
-        future.set_exception(Exception(pkg.read_data()))
+        try:
+            msg = pkg.read_data()
+        except Exception as e:
+            future.set_exception(e)
+        else:
+            future.set_exception(Exception(msg))
 
     def _on_res_ok(self, pkg):
         future = self._get_future(pkg)

@@ -62,18 +62,19 @@ class Protocol(asyncio.Protocol):
         '''
         self._buffered_data.extend(data)
         while self._buffered_data:
-            size = len(self._buffered_data)
-            if self._package is None:
-                if size < Package.st_package.size:
-                    return None
-                self._package = Package(self._buffered_data)
-            if size < self._package.total:
-                return None
             try:
-                self._package.extract_data_from(self._buffered_data)
-                self.on_package_received(self._package)
-            except Exception:
-                logging.exception('')
+                size = len(self._buffered_data)
+                if self._package is None:
+                    if size < Package.st_package.size:
+                        return None
+                    self._package = Package(self._buffered_data)
+                if size < self._package.total:
+                    return None
+                    self._package.extract_data_from(self._buffered_data)
+                    self.on_package_received(self._package)
+            except Exception as e:
+                msg = str(e) or type(e).__name__
+                logging.error(f'data protocol error: {msg}')
                 # empty the byte-array to recover from this error
                 self._buffered_data.clear()
             self._package = None

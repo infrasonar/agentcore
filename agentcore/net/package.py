@@ -73,7 +73,7 @@ class Package(object):
                 use_list=False,
                 strict_map_key=False)
         except Exception:
-            logging.error('failed to unpack package id: {0.pid}'.format(self))
+            logging.error(f'failed to unpack: {self}')
             raise
         self.body = None
         return self.data
