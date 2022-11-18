@@ -77,7 +77,7 @@ class ProbeServerProtocol(Protocol):
                 msg = str(e) or type(e).__name__
                 raise Exception(f'unpack announce response failed: {msg}')
 
-            logging.info(f'probe collector announce: {name} v{verssion}')
+            logging.info(f'probe collector announce: {name} v{version}')
 
             for conn in State.probe_connections:
                 if conn.probe_name == name:
