@@ -124,7 +124,8 @@ class Agentcore:
             await asyncio.sleep(HUB_QUEUE_SLEEP)
 
     def _on_connection_lost(self):
-        self._queue_fut.cancel()
+        if self._queue_fut:
+            self._queue_fut.cancel()
 
     def _read_json(self):
         with open(AGENTCORE_JSON_FN) as fp:
