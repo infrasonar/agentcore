@@ -8,6 +8,7 @@ from agentcore.client import Agentcore
 from agentcore.connection import init_probe_server
 from agentcore.logger import setup_logger
 from agentcore.state import State
+from agentcore.version import __version__ as version
 
 FQDN = socket.getaddrinfo(
     socket.gethostname(),
@@ -30,7 +31,7 @@ if __name__ == '__main__':
     setproctitle('agentcore')
     setup_logger()
 
-    logging.warning(f'Stating agentcore v{version}')
+    logging.warning(f'stating agentcore v{version}')
 
     State.name = AGENTCORE_NAME
     State.token = TOKEN
