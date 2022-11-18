@@ -47,10 +47,8 @@ if __name__ == '__main__':
     try:
         loop.run_until_complete(State.agentcore.start())
     except asyncio.exceptions.CancelledError:
+        State.stop()
         loop.run_until_complete(loop.shutdown_asyncgens())
         loop.close()
 
-    State.stop()
-
-    loop.close()
     logging.info('Bye!')
