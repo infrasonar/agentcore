@@ -71,12 +71,18 @@ class Protocol(asyncio.Protocol):
                 if size < self._package.total:
                     return None
                 self._package.extract_data_from(self._buffered_data)
-                self.on_package_received(self._package)
             except Exception as e:
                 msg = str(e) or type(e).__name__
                 logging.error(f'data protocol error: {msg}')
                 # empty the byte-array to recover from this error
                 self._buffered_data.clear()
+            else:
+                try:
+                    self.on_package_received(self._package)
+                except Exception as e:
+                    msg = str(e) or type(e).__name__
+                    logging.exception(f'on package handle error: {msg}')
+
             self._package = None
 
     def on_package_received(self, pkg: Package):
