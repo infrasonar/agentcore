@@ -17,7 +17,3 @@ Variable            | Default                       | Description
 `LOG_LEVEL`         | `info`                        | Log level (`debug`, `info`, `warning`, `error` or `critical`).
 `LOG_COLORIZED`     | `1`                           | Log using colors (`0`=disabled, `1`=enabled).
 `LOG_FTM`           | `%y%m%d %H:%M:%S`             | Log format prefix.
-
-## Connection to the InfraSonar hub is lost
-
-When the connection to the InfraSonar hub is lost, the agentcore will continue to 
