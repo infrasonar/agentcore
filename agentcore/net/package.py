@@ -27,7 +27,7 @@ class Package(object):
     def make(
         cls,
         tp: int,
-        data: bytes = b'',
+        data: Any = b'',
         pid: int = 0,
         partid: int = 0,
         is_binary: bool = False,
@@ -40,7 +40,7 @@ class Package(object):
         if is_binary is False:
             data = msgpack.packb(data)
 
-        pkg.data = data
+        pkg.body = data
         pkg.length = len(data)
         return pkg
 
@@ -52,7 +52,13 @@ class Package(object):
             self.tp,
             self.tp ^ 0xff)
 
-        return header + self.data
+        return header + self.body
+
+    @classmethod
+    def from_bytes(cls, barray: bytes) -> Package:
+        pkg = cls(barray)
+        pkg.body = barray[cls.st_package.size:pkg.total]
+        return pkg
 
     def extract_data_from(self, barray: bytearray):
         self.body = None

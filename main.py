@@ -23,6 +23,8 @@ def stop(signame, *args):
     logging.warning(f'signal \'{signame}\' received, stop agentcore')
     for task in asyncio.all_tasks():
         task.cancel()
+    State.stop()
+    loop.close()
 
 
 if __name__ == '__main__':
@@ -44,11 +46,11 @@ if __name__ == '__main__':
     signal.signal(signal.SIGINT, stop)
     signal.signal(signal.SIGTERM, stop)
 
+    State.agentcore.start()
+
     try:
-        loop.run_until_complete(State.agentcore.start())
-    except asyncio.exceptions.CancelledError:
-        State.stop()
+        loop.run_forever()
+    except Exception:
         loop.run_until_complete(loop.shutdown_asyncgens())
-        loop.close()
 
     logging.info('Bye!')

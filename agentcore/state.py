@@ -1,4 +1,7 @@
 from __future__ import annotations
+import msgpack
+import logging
+import os
 from typing import Optional, List, Set, TYPE_CHECKING
 from collections import defaultdict
 from weakref import WeakSet
@@ -20,6 +23,7 @@ class State:
     token: str
     agentcore_id: Optional[int] = None  # from JSON/announce
     zones: Optional[Zones] = None  # after announce
+    assets_fn: Optional[str] = None
 
     @classmethod
     def set_zones(cls, agentcores: List[List[int, int]]):
@@ -97,8 +101,49 @@ class State:
             conn.send_set_assets(new[conn.probe_name])
 
     @classmethod
+    def dump_probe_assets(cls):
+        if cls.assets_fn is None:
+            logging.debug(f'dump file still None')
+            return
+
+        logging.info(f'write assets to: {cls.assets_fn}')
+        try:
+            with open(cls.assets_fn, 'wb') as fp:
+                msgpack.pack(cls.probe_assets, fp)
+        except Exception as e:
+            msg = str(e) or type(e).__name__
+            logging.error(f'failed to write: {cls.assets_fn} ({msg})')
+
+    @classmethod
+    def load_probe_assets(cls):
+        logging.warning(f'load assets from: {cls.assets_fn}')
+        try:
+            with open(cls.assets_fn, 'rb') as fp:
+                data = msgpack.unpack(fp)
+                for k, v in data.items():
+                    cls.probe_assets[k] = v
+        except Exception as e:
+            msg = str(e) or type(e).__name__
+            logging.error(f'failed to read: {cls.assets_fn} ({msg})')
+        else:
+            for conn in cls.probe_connections:
+                if conn.probe_name in cls.probe_assets:
+                    conn.send_set_assets(cls.probe_assets[conn.probe_name])
+
+    @classmethod
+    def remove_assets_fn(cls):
+        if os.path.exists(cls.assets_fn):
+            try:
+                os.remove(cls.assets_fn)
+            except Exception as e:
+                msg = str(e) or type(e).__name__
+                logging.error(f'failed to remove: {cls.assets_fn} ({msg})')
+            else:
+                logging.info(f'removed assets file: {cls.assets_fn}')
+
+    @classmethod
     def stop(cls):
         for conn in cls.probe_connections:
             conn.close()
-
         cls.agentcore.close()
+        cls.dump_probe_assets()

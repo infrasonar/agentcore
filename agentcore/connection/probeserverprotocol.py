@@ -76,7 +76,13 @@ class ProbeServerProtocol(Protocol):
         try:
             State.agentcore.queue.put_nowait(pkg)
         except asyncio.QueueFull:
-            logging.error('hub queue full')
+            logging.warning('hub queue full; drop first in queue')
+            try:
+                State.agentcore.queue.get_nowait()
+                State.agentcore.queue.put_nowait(pkg)
+            except Exception as e:
+                msg = str(e) or type(e).__name__
+                logging.error(f'failed to add package to hub queue: {msg}')
 
     def _on_req_announce(self, pkg: Package):
         try:
