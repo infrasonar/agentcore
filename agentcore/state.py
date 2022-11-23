@@ -60,10 +60,10 @@ class State:
 
         new = defaultdict(list)
         for probe_key, probe_config, checks_ in probes:
-            for check_id, check_name, interval, check_config in checks_:
+            for check_id, check_key, interval, check_config in checks_:
                 new[probe_key].append([
                     [asset_id, check_id],
-                    [asset_name, check_name],
+                    [asset_name, check_key],
                     {
                         '_interval': interval,
                         **(probe_config or {}),  # can be empty
@@ -85,10 +85,10 @@ class State:
             if not cls.zones.has_asset(asset_id, asset_zone):
                 continue
             for probe_key, probe_config, checks_ in probes:
-                for check_id, check_name, interval, check_config in checks_:
+                for check_id, check_key, interval, check_config in checks_:
                     new[probe_key].append([
                         [asset_id, check_id],
-                        [asset_name, check_name],
+                        [asset_name, check_key],
                         {
                             '_interval': interval,
                             **(probe_config or {}),  # can be empty
