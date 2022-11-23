@@ -29,11 +29,11 @@ class ProbeServerProtocol(Protocol):
 
     def __init__(self):
         super().__init__()
-        self.probe_name = None
+        self.probe_key = None
         self.version = None
 
     def connection_lost(self, exc: Optional[Exception]):
-        logging.info(f'Connecion lost; probe name: `{self.probe_name}`')
+        logging.info(f'Connecion lost; probe collector: `{self.probe_key}`')
         super().connection_lost(exc)
         try:
             State.probe_connections.remove(self)
@@ -51,7 +51,7 @@ class ProbeServerProtocol(Protocol):
             probe_timestamp = 1  # don't want the heartbeat to fail
 
         return {
-            'name': self.probe_name,
+            'name': self.probe_key,
             'version': self.version,
             'timestamp': probe_timestamp,
             'roundtrip': time.time() - t0,
@@ -95,7 +95,7 @@ class ProbeServerProtocol(Protocol):
             logging.info(f'probe collector announce: {name} v{version}')
 
             for conn in State.probe_connections:
-                if conn.probe_name == name:
+                if conn.probe_key == name:
                     raise Exception(
                         'got a double probe collector announcement: '
                         f'{name} v{conn.version}; close the connection')
@@ -117,7 +117,7 @@ class ProbeServerProtocol(Protocol):
                 msg = str(e) or type(e).__name__
                 raise Exception(f'failed to write announce response: {msg}')
 
-            self.probe_name = name
+            self.probe_key = name
             self.version = version
             State.probe_connections.add(self)
 

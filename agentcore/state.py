@@ -59,9 +59,9 @@ class State:
             return
 
         new = defaultdict(list)
-        for probe_name, probe_config, checks_ in probes:
+        for probe_key, probe_config, checks_ in probes:
             for check_id, check_name, interval, check_config in checks_:
-                new[probe_name].append([
+                new[probe_key].append([
                     [asset_id, check_id],
                     [asset_name, check_name],
                     {
@@ -71,11 +71,11 @@ class State:
                     },
                 ])
 
-        for probe_name, checks in new.items():
-            cls.probe_assets[probe_name].extend(checks)
+        for probe_key, checks in new.items():
+            cls.probe_assets[probe_key].extend(checks)
 
         for conn in cls.probe_connections:
-            conn.send_upsert_asset([asset_id, new[conn.probe_name]])
+            conn.send_upsert_asset([asset_id, new[conn.probe_key]])
 
     @classmethod
     def set_assets(cls, assets: list):
@@ -84,9 +84,9 @@ class State:
         for asset_id, asset_zone, asset_name, probes in assets:
             if not cls.zones.has_asset(asset_id, asset_zone):
                 continue
-            for probe_name, probe_config, checks_ in probes:
+            for probe_key, probe_config, checks_ in probes:
                 for check_id, check_name, interval, check_config in checks_:
-                    new[probe_name].append([
+                    new[probe_key].append([
                         [asset_id, check_id],
                         [asset_name, check_name],
                         {
@@ -98,7 +98,7 @@ class State:
         cls.probe_assets = new
 
         for conn in cls.probe_connections:
-            conn.send_set_assets(new[conn.probe_name])
+            conn.send_set_assets(new[conn.probe_key])
 
     @classmethod
     def dump_probe_assets(cls):
@@ -127,8 +127,8 @@ class State:
             logging.error(f'failed to read: {cls.assets_fn} ({msg})')
         else:
             for conn in cls.probe_connections:
-                if conn.probe_name in cls.probe_assets:
-                    conn.send_set_assets(cls.probe_assets[conn.probe_name])
+                if conn.probe_key in cls.probe_assets:
+                    conn.send_set_assets(cls.probe_assets[conn.probe_key])
 
     @classmethod
     def remove_assets_fn(cls):
