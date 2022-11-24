@@ -21,8 +21,6 @@ AGENTCORE_NAME = os.getenv('AGENTCORE_NAME', FQDN)
 
 def stop(signame, *args):
     logging.warning(f'signal \'{signame}\' received, stop agentcore')
-    for task in asyncio.all_tasks():
-        task.cancel()
     State.stop()
     loop.close()
 

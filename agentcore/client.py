@@ -11,6 +11,7 @@ from .state import State
 
 HUB_QUEUE_SIZE = 100_000
 HUB_QUEUE_SLEEP = .001
+HUB_MAX_ERR = 5
 
 HUB_HOST = os.getenv('HUB_HOST', 'hub.infrasonar.com')
 HUB_PORT = int(os.getenv('HUB_PORT', 8730))
@@ -131,6 +132,7 @@ class Agentcore:
         """This will write the "current" packe to the hub.
         It will try as long as is required
         """
+        err_count = 0
         while True:
             if self.is_connected():
                 try:
@@ -138,9 +140,24 @@ class Agentcore:
                 except RespException as e:
                     logging.error(f'error from hub: {str(e)}')
                     break
-                except Exception as e:
+                except TimeoutError as e:
                     msg = str(e) or type(e).__name__
                     logging.error(msg)
+                    err_count += 1
+                    if err_count % HUB_MAX_ERR == 0 and \
+                            self._protocol and \
+                            self._protocol.transport:
+                        logging.warning(
+                            'too many request timeout errors; '
+                            'forcing a re-connect')
+                        self._protocol.transport.close()
+                except Exception as e:
+                    msg = str(e) or type(e).__name__
+                    logging.exception(msg)
+                    err_count += 1
+                    if err_count % HUB_MAX_ERR == 0:
+                        logging.error('too many errors; skip this request')
+                        break
                 else:
                     logging.debug('successfully send data to hub')
                     break
