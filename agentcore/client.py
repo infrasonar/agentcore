@@ -119,8 +119,7 @@ class Agentcore:
                 except Exception as e:
                     msg = str(e) or type(e).__name__
                     logging.error(f'failed to announce: {msg}')
-                    if self.is_connected():
-                        self._protocol.transport.close()
+                    self.close_protocol()
                 else:
                     self._dump_json()
                     State.assets_fn = AGENTCORE_ASSETS_FN
@@ -150,7 +149,7 @@ class Agentcore:
                         logging.warning(
                             'too many request timeout errors; '
                             'forcing a re-connect')
-                        self._protocol.transport.close()
+                        self.close_protocol()
                 except Exception as e:
                     msg = str(e) or type(e).__name__
                     logging.exception(msg)
@@ -225,14 +224,17 @@ class Agentcore:
         else:
             logging.info(f'removed queue file: {AGENTCORE_QUEUE_FN}')
 
+    def close_protocol(self):
+        if self._protocol and self._protocol.transport:
+            self._protocol.transport.close()
+        self._protocol = None
+
     def close(self):
         if self._queue_fut is not None:
             self._queue_fut.cancel()
         if self._connect_fut is not None:
             self._connect_fut.cancel()
-        if self._protocol and self._protocol.transport:
-            self._protocol.transport.close()
-        self._protocol = None
+        self.close_protocol()
         try:
             self.dump_queue()
         except Exception as e:
