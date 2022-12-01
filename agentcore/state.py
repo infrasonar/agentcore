@@ -8,6 +8,7 @@ from weakref import WeakSet
 from .zones import Zones
 if TYPE_CHECKING:
     from .connection.probeserverprotocol import ProbeServerProtocol
+    from .client import Agentcore
 
 
 PATH_IDX, NAMES_IDX, CONFIG_IDX = range(3)
@@ -15,7 +16,7 @@ ASSET_ID, ZONE, CHECK_ID = range(3)
 
 
 class State:
-    agentcore = None
+    agentcore: Optional[Agentcore] = None
     probe_connections: Set[ProbeServerProtocol] = set()
     probe_assets = defaultdict(list)
     zone: int = 0
