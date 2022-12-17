@@ -51,7 +51,7 @@ class ProbeServerProtocol(Protocol):
             probe_timestamp = 1  # don't want the heartbeat to fail
 
         return {
-            'name': self.probe_key,
+            'key': self.probe_key,
             'version': self.version,
             'timestamp': probe_timestamp,
             'roundtrip': time.time() - t0,

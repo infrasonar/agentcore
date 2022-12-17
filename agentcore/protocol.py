@@ -105,10 +105,14 @@ class HubProtocol(Protocol):
             for conn in State.probe_connections
         ])
 
+        having = set([p['key'] for p in probes])
+        missing = State.required_probes() - having
+
         resp_pkg = Package.make(
             HubProtocol.PROTO_RES_INFO,
             pid=pkg.pid,
             data={
+                'missing': tuple(missing),
                 'probes': probes,
                 'timestamp': time.time(),
                 'version': __version__

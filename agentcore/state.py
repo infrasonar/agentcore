@@ -116,6 +116,10 @@ class State:
             logging.error(f'failed to write: {cls.assets_fn} ({msg})')
 
     @classmethod
+    def required_probes(cls) -> Set[str]:
+        return set(cls.probe_assets.keys())
+
+    @classmethod
     def load_probe_assets(cls):
         logging.warning(f'load assets from: {cls.assets_fn}')
         try:
