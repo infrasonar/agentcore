@@ -117,7 +117,7 @@ class State:
 
     @classmethod
     def required_probes(cls) -> Set[str]:
-        return set(cls.probe_assets.keys())
+        return set(key for key, items in cls.probe_assets.items() if items)
 
     @classmethod
     def load_probe_assets(cls):
