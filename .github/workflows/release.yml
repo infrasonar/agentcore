@@ -45,5 +45,5 @@ jobs:
         with:
           context: .
           push: true
-          tags: ghcr.io/infrasonar/agentcore:${{ steps.get_version.outputs.VERSION }},ghcr.io/infrasonar/agentcore:latest,ghcr.io/infrasonar/agentcore:unstable
+          tags: ghcr.io/infrasonar/agentcore:${{ steps.get_version.outputs.VERSION }},ghcr.io/infrasonar/agentcore:latest
           labels: ${{ steps.meta.outputs.labels }}
