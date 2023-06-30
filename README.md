@@ -12,7 +12,7 @@ Variable            | Default                       | Description
 `AGENTCORE_ZONE`    | `0`                           | Zone _(integer)_ for the Agentcore.
 `AGENTCORE_DATA`    | `/data`                       | Data path _(`.agentcore.json` with the Agentcore Id is also stored in this path)_.
 `HUB_HOST`          | `hub.infrasonar.com`          | InfraSonar Hub address.
-`HUB_PORT`          | `8730`                        | InfraSonar Hub TCP Port to connect to. _(should be the default 8730 for InfraSonar)_
+`HUB_PORT`          | `8730`                        | InfraSonar Hub TCP Port to connect to. _(must be either 8730 or 443)_
 `PROBE_SERVER_PORT` | `8750`                        | Probe connection TCP port.
 `LOG_LEVEL`         | `info`                        | Log level (`debug`, `info`, `warning`, `error` or `critical`).
 `LOG_COLORIZED`     | `1`                           | Log using colors (`0`=disabled, `1`=enabled).
