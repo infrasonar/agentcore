@@ -5,6 +5,7 @@ import os
 import ssl
 import msgpack
 from typing import Optional, List
+from .loop import loop
 from .net.package import Package
 from .protocol import HubProtocol, RespException
 from .state import State
@@ -87,7 +88,7 @@ class Agentcore:
         ctx.check_hostname = False
         ctx.load_verify_locations(AGENTCORE_HUB_CRT)
 
-        conn = asyncio.get_event_loop().create_connection(
+        conn = loop.create_connection(
             HubProtocol,
             host=HUB_HOST,
             port=HUB_PORT,

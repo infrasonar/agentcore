@@ -136,8 +136,7 @@ class ProbeServerProtocol(Protocol):
         try:
             data = pkg.read_data()
         except Exception as e:
-            msg = str(e) or type(e).__name__
-            future.set_exception(f'unpack probe info data failed: {msg}')
+            future.set_exception(e)
         else:
             future.set_result(data)
 

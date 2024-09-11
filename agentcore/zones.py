@@ -1,4 +1,4 @@
-from typing import Tuple
+from typing import Tuple, List
 
 
 class Zones:
@@ -6,7 +6,7 @@ class Zones:
             self,
             agentcore_id: int,
             zone: int,
-            agentcores: Tuple[Tuple[int, int]]):
+            agentcores: List[Tuple[int, int]]):
         agentcores = sorted(agentcores)
         zone_ids = []
         all_ids = []

@@ -2,7 +2,7 @@ from __future__ import annotations
 import msgpack
 import logging
 import os
-from typing import Optional, List, Set, TYPE_CHECKING
+from typing import Optional, Tuple, List, Set, TYPE_CHECKING
 from collections import defaultdict
 from weakref import WeakSet
 from .zones import Zones
@@ -27,7 +27,7 @@ class State:
     assets_fn: Optional[str] = None
 
     @classmethod
-    def set_zones(cls, agentcores: List[List[int, int]]):
+    def set_zones(cls, agentcores: List[Tuple[int, int]]):
         cls.zones = Zones(cls.agentcore_id, cls.zone, agentcores)
 
     @classmethod
