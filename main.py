@@ -7,6 +7,7 @@ from setproctitle import setproctitle
 from agentcore.client import Agentcore
 from agentcore.connection import init_probe_server
 from agentcore.logger import setup_logger
+from agentcore.loop import loop
 from agentcore.state import State
 from agentcore.version import __version__ as version
 
@@ -38,7 +39,6 @@ if __name__ == '__main__':
     State.zone = AGENTCORE_ZONE
     State.agentcore = Agentcore()
 
-    loop = asyncio.get_event_loop()
     init_probe_server(loop)
 
     signal.signal(signal.SIGINT, stop)
