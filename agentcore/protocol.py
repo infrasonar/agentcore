@@ -1,7 +1,7 @@
 import asyncio
 import logging
 import time
-from typing import Optional, Callable
+from typing import Optional
 from .net.package import Package
 from .net.protocol import Protocol
 from .state import State

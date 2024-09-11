@@ -4,7 +4,6 @@ import logging
 import os
 from typing import Optional, Tuple, List, Set, TYPE_CHECKING
 from collections import defaultdict
-from weakref import WeakSet
 from .zones import Zones
 if TYPE_CHECKING:
     from .connection.probeserverprotocol import ProbeServerProtocol
@@ -104,7 +103,7 @@ class State:
     @classmethod
     def dump_probe_assets(cls):
         if cls.assets_fn is None:
-            logging.debug(f'dump file still None')
+            logging.debug('dump file still None')
             return
 
         logging.info(f'write assets to: {cls.assets_fn}')
