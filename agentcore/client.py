@@ -61,10 +61,12 @@ class Agentcore:
     def is_connecting(self) -> bool:
         return self._connecting
 
-    def start(self):
+    def start(self, loop: asyncio.AbstractEventLoop):
         self.load_queue()
-        self._queue_fut = asyncio.ensure_future(self._empty_queue_loop())
-        self._connect_fut = asyncio.ensure_future(self._reconnect_loop())
+        self._queue_fut = \
+            asyncio.ensure_future(self._empty_queue_loop(), loop=loop)
+        self._connect_fut = \
+            asyncio.ensure_future(self._reconnect_loop(), loop=loop)
 
     async def _reconnect_loop(self):
         initial_step = 2

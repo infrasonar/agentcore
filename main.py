@@ -44,7 +44,7 @@ if __name__ == '__main__':
     signal.signal(signal.SIGINT, stop)
     signal.signal(signal.SIGTERM, stop)
 
-    State.agentcore.start()
+    State.agentcore.start(loop)
 
     try:
         loop.run_forever()
