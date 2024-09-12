@@ -118,6 +118,7 @@ class HubProtocol(Protocol):
                 'version': __version__
             }
         )
+        assert self.transport is not None
         self.transport.write(resp_pkg.to_bytes())
 
     def _on_res_err(self, pkg: Package):

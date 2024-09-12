@@ -29,8 +29,8 @@ class ProbeServerProtocol(Protocol):
 
     def __init__(self):
         super().__init__()
-        self.probe_key = None
-        self.version = None
+        self.probe_key: Optional[str] = None
+        self.version: Optional[str] = None
 
     def connection_lost(self, exc: Optional[Exception]):
         logging.info(f'Connecion lost; probe collector: `{self.probe_key}`')
@@ -58,21 +58,25 @@ class ProbeServerProtocol(Protocol):
         }
 
     def send_unset_assets(self, asset_ids: list):
+        assert self.transport is not None
         resp_pkg = Package.make(
             ProbeServerProtocol.PROTO_FAF_UNSET_ASSETS, data=asset_ids)
         self.transport.write(resp_pkg.to_bytes())
 
     def send_upsert_asset(self, asset: list):
+        assert self.transport is not None
         resp_pkg = Package.make(
             ProbeServerProtocol.PROTO_FAF_UPSERT_ASSET, data=asset)
         self.transport.write(resp_pkg.to_bytes())
 
     def send_set_assets(self, assets: list):
+        assert self.transport is not None
         resp_pkg = Package.make(
             ProbeServerProtocol.PROTO_FAF_SET_ASSETS, data=assets)
         self.transport.write(resp_pkg.to_bytes())
 
     def _on_faf_dump(self, pkg):
+        assert State.agentcore is not None
         try:
             State.agentcore.queue.put_nowait(pkg)
         except asyncio.QueueFull:
@@ -85,6 +89,7 @@ class ProbeServerProtocol(Protocol):
                 logging.error(f'failed to add package to hub queue: {msg}')
 
     def _on_req_announce(self, pkg: Package):
+        assert self.transport is not None
         try:
             try:
                 name, version = pkg.read_data()

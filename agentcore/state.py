@@ -2,7 +2,7 @@ from __future__ import annotations
 import msgpack
 import logging
 import os
-from typing import Optional, Tuple, List, Set, TYPE_CHECKING
+from typing import Optional, Tuple, List, Set, Dict, TYPE_CHECKING
 from collections import defaultdict
 from .zones import Zones
 if TYPE_CHECKING:
@@ -17,7 +17,7 @@ ASSET_ID, ZONE, CHECK_ID = range(3)
 class State:
     agentcore: Optional[Agentcore] = None
     probe_connections: Set[ProbeServerProtocol] = set()
-    probe_assets = defaultdict(list)
+    probe_assets: Dict[str, list] = defaultdict(list)
     zone: int = 0
     name: str
     token: str
@@ -27,6 +27,7 @@ class State:
 
     @classmethod
     def set_zones(cls, agentcores: List[Tuple[int, int]]):
+        assert cls.agentcore_id is not None  # is set after announce
         cls.zones = Zones(cls.agentcore_id, cls.zone, agentcores)
 
     @classmethod
@@ -45,6 +46,7 @@ class State:
     @classmethod
     def upsert_asset(cls, asset: list):
         """Update or add a single asset."""
+        assert cls.zones is not None  # is set after announce
         asset_id, asset_zone, asset_name, probes = asset
 
         # first remove all checks for the current asset
@@ -80,6 +82,7 @@ class State:
     @classmethod
     def set_assets(cls, assets: list):
         """Overwites all the assets."""
+        assert cls.zones is not None  # is set after announce
         new = defaultdict(list)
         for asset_id, asset_zone, asset_name, probes in assets:
             if not cls.zones.has_asset(asset_id, asset_zone):
@@ -120,10 +123,11 @@ class State:
 
     @classmethod
     def load_probe_assets(cls):
+        assert cls.assets_fn is not None  # is set after connect
         logging.warning(f'load assets from: {cls.assets_fn}')
         try:
             with open(cls.assets_fn, 'rb') as fp:
-                data = msgpack.unpack(fp)
+                data: dict = msgpack.unpack(fp)  # type: ignore
                 for k, v in data.items():
                     cls.probe_assets[k] = v
         except Exception as e:
@@ -131,11 +135,13 @@ class State:
             logging.error(f'failed to read: {cls.assets_fn} ({msg})')
         else:
             for conn in cls.probe_connections:
-                if conn.probe_key in cls.probe_assets:
+                if conn.probe_key is not None and \
+                        conn.probe_key in cls.probe_assets:
                     conn.send_set_assets(cls.probe_assets[conn.probe_key])
 
     @classmethod
     def remove_assets_fn(cls):
+        assert cls.assets_fn is not None  # is set directly after connect
         if os.path.exists(cls.assets_fn):
             try:
                 os.remove(cls.assets_fn)
@@ -149,5 +155,6 @@ class State:
     def stop(cls):
         for conn in cls.probe_connections:
             conn.close()
+        assert cls.agentcore is not None
         cls.agentcore.close()
         cls.dump_probe_assets()
