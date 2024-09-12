@@ -47,7 +47,7 @@ class Agentcore:
     _pkg: Optional[Package]
 
     def __init__(self):
-        self.queue = asyncio.Queue(maxsize=HUB_QUEUE_SIZE, loop=loop)
+        self.queue = asyncio.Queue(maxsize=HUB_QUEUE_SIZE)
         self._connecting = False
         self._protocol = None
         self._queue_fut = None
