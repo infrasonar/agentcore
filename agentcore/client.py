@@ -4,7 +4,7 @@ import logging
 import os
 import ssl
 import msgpack
-from typing import Optional, List
+from typing import Optional
 from .loop import loop
 from .net.package import Package
 from .protocol import HubProtocol, RespException
@@ -238,5 +238,5 @@ class Agentcore:
         self.close_protocol()
         try:
             self.dump_queue()
-        except Exception as e:
+        except Exception:
             logging.exception('')
