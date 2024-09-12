@@ -2,7 +2,7 @@ from __future__ import annotations
 import logging
 import msgpack
 import struct
-from typing import Any, Optional
+from typing import Optional, Any
 
 
 class Package(object):
@@ -20,8 +20,8 @@ class Package(object):
         if self.tp != checkbit ^ 255:
             raise ValueError('invalid checkbit')
         self.total = self.__class__.st_package.size + self.length
-        self.body = None
-        self.data = None
+        self.body: Optional[bytearray] = None
+        self.data: Any = None
 
     @classmethod
     def make(
@@ -52,10 +52,11 @@ class Package(object):
             self.tp,
             self.tp ^ 0xff)
 
+        assert self.body is not None
         return header + self.body
 
     @classmethod
-    def from_bytes(cls, barray: bytes) -> Package:
+    def from_bytes(cls, barray: bytearray) -> Package:
         pkg = cls(barray)
         pkg.body = barray[cls.st_package.size:pkg.total]
         return pkg

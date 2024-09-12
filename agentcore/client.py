@@ -4,7 +4,7 @@ import logging
 import os
 import ssl
 import msgpack
-from typing import Optional
+from typing import Optional, Tuple
 from .loop import loop
 from .net.package import Package
 from .protocol import HubProtocol, RespException
@@ -134,10 +134,12 @@ class Agentcore:
         """This will write the "current" packe to the hub.
         It will try as long as is required
         """
+        assert self._pkg is not None
         err_count = 0
         while True:
             if self.is_connected():
                 try:
+                    assert self._protocol is not None
                     await self._protocol.request(self._pkg, timeout=10)
                 except RespException as e:
                     logging.error(f'error from hub: {str(e)}')
@@ -209,7 +211,8 @@ class Agentcore:
             return
         try:
             with open(AGENTCORE_QUEUE_FN, 'rb') as fp:
-                data = msgpack.unpack(fp, use_list=False, strict_map_key=False)
+                data: Tuple[bytearray] = msgpack.unpack(
+                    fp, use_list=False, strict_map_key=False)  # type: ignore
             for barray in data[:HUB_QUEUE_SIZE]:
                 pkg = Package.from_bytes(barray)
                 self.queue.put_nowait(pkg)
