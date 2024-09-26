@@ -1,3 +1,4 @@
+import logging
 from typing import Tuple, List
 
 
@@ -18,12 +19,24 @@ class Zones:
             else:
                 zones.add(ac_zone)
             all_ids.append(ac_id)
+
         self._zone = zone
-        self._zone_idx = zone_ids.index(agentcore_id)
-        self._zone_mod = len(zone_ids)
-        self._all_idx = all_ids.index(agentcore_id)
-        self._all_mod = len(all_ids)
         self._zones = zones
+
+        self._zone_mod = len(zone_ids)
+        self._all_mod = len(all_ids)
+
+        try:
+            self._zone_idx = zone_ids.index(agentcore_id)
+            self._all_idx = all_ids.index(agentcore_id)
+        except ValueError:
+            logging.error(
+                f'failed to find a zone for agent core Id {agentcore_id}; '
+                'please check if the agentcore exists')
+            # zone_idx and all_idx as None forces `has_asset` to return False
+            self._zone_idx = None
+            self._all_idx = None
+
 
     def has_asset(self, asset_id: int, asset_zone: int) -> bool:
         if asset_zone == self._zone:
