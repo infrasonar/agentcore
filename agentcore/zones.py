@@ -37,7 +37,6 @@ class Zones:
             self._zone_idx = None
             self._all_idx = None
 
-
     def has_asset(self, asset_id: int, asset_zone: int) -> bool:
         if asset_zone == self._zone:
             return asset_id % self._zone_mod == self._zone_idx

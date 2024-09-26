@@ -1,6 +1,7 @@
 import asyncio
 import logging
 import os
+import sys
 import socket
 import signal
 from setproctitle import setproctitle
@@ -11,13 +12,22 @@ from agentcore.loop import loop
 from agentcore.state import State
 from agentcore.version import __version__ as version
 
-FQDN = socket.getaddrinfo(
-    socket.gethostname(),
-    0,
-    flags=socket.AI_CANONNAME)[0][3]
+try:
+    FQDN = socket.getaddrinfo(
+        socket.gethostname(),
+        0,
+        flags=socket.AI_CANONNAME)[0][3]
+except Exception:
+    FQDN = None
+
 TOKEN = os.getenv('TOKEN')
 AGENTCORE_ZONE = int(os.getenv('AGENTCORE_ZONE', 0))
 AGENTCORE_NAME = os.getenv('AGENTCORE_NAME', FQDN)
+
+if AGENTCORE_NAME is None:
+    sys.exit(
+        'Unable to read a name for the agentcore.\n'
+        'Please use the `AGENTCORE_NAME` to provide a name.')
 
 
 def stop(signame, *args):
