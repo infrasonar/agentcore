@@ -26,6 +26,8 @@ class HubProtocol(Protocol):
 
     PROTO_FAF_UNSET_ASSETS = 0x05  # Remove given assets
 
+    PROTO_REQ_RAPP = 0x6  # Remote Appliace Request
+
     PROTO_RES_ANNOUNCE = 0x81
 
     PROTO_RES_INFO = 0x82
@@ -33,6 +35,8 @@ class HubProtocol(Protocol):
     PROTO_RES_ERR = 0xe0
 
     PROTO_RES_OK = 0xe1
+
+    PROTO_RES_RAPP = 0xe2  # Remote Appliace Response
 
     def __init__(self):
         super().__init__()
@@ -74,6 +78,14 @@ class HubProtocol(Protocol):
 
     def _on_req_info(self, pkg: Package):
         asyncio.ensure_future(self._req_info(pkg))
+
+    def _on_req_rapp(self, pkg: Package):
+        if State.rapp is None or not State.rapp.is_connected():
+            Package.make(
+                HubProtocol.PROTO_RES_RAPP,
+                data: {'reason'})
+                protocol: 
+            pkg.data
 
     def _on_faf_upsert_asset(self, pkg: Package):
         try:
@@ -141,6 +153,7 @@ class HubProtocol(Protocol):
         PROTO_RES_ANNOUNCE: _on_res_announce,
         PROTO_FAF_SET_ASSETS: _on_faf_set_assets,
         PROTO_REQ_INFO: _on_req_info,
+        PROTO_REQ_RAPP: _on_req_rapp,
         PROTO_FAF_UPSERT_ASSET: _on_faf_upsert_asset,
         PROTO_FAF_UNSET_ASSETS: _on_faf_unset_assets,
         PROTO_RES_ERR: _on_res_err,

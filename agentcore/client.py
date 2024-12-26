@@ -7,7 +7,7 @@ import msgpack
 from typing import Optional, Tuple
 from .loop import loop
 from .net.package import Package
-from .protocol import HubProtocol, RespException
+from .hubprotocol import HubProtocol, RespException
 from .state import State
 
 HUB_QUEUE_SIZE = 100_000

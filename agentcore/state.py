@@ -7,6 +7,7 @@ from collections import defaultdict
 from .zones import Zones
 if TYPE_CHECKING:
     from .connection.probeserverprotocol import ProbeServerProtocol
+    from .connection.rappprotocol import RappProtocol
     from .client import Agentcore
 
 
@@ -18,6 +19,7 @@ class State:
     agentcore: Optional[Agentcore] = None
     probe_connections: Set[ProbeServerProtocol] = set()
     probe_assets: Dict[str, list] = defaultdict(list)
+    rapp: Optional[RappProtocol] = None
     zone: int = 0
     name: str
     token: str
