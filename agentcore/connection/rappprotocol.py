@@ -49,12 +49,11 @@ class RappProtocol(Protocol):
             State.rapp = None
 
     async def keepalive_loop(self):
-        pkg = Package.make(self.PROTO_RAPP_READ, is_binary=False)
+        pkg = Package.make(self.PROTO_RAPP_PING, is_binary=True)
         while True:
-            await asyncio.sleep(3)
+            await asyncio.sleep(20)
             try:
-                data = await self.request(pkg, timeout=10)
-                logging.debug(data)
+                _ = await self.request(pkg, timeout=10)
                 logging.info('rapp keepalive')
             except asyncio.CancelledError:
                 break

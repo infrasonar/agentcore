@@ -131,23 +131,23 @@ class HubProtocol(Protocol):
     async def _req_rapp(self, pkg: Package):
         if State.rapp is None or not State.rapp.is_connected():
             pkg = Package.make(
-                HubProtocol.PROTO_RES_RAPP,
+                tp=HubProtocol.PROTO_RES_RAPP,
                 data={'protocol': RappProtocol.PROTO_RAPP_NO_CONNECTION},
                 pid=pkg.pid)
-            self.transport.write(pkg.to_bytes())
-            return
-        data = pkg.data.get('data')
-        req = Package.make(
-            tp=pkg.data['protocol'],
-            data=b'' if data is None else data,
-            is_binary=data is None
-        )
-        res = await State.rapp.request(req, timeout=5)
-        pkg = Package.make(
-            tp=HubProtocol.PROTO_RES_RAPP,
-            data=res,
-            pid=pkg.pid,
-        )
+        else:
+            data = pkg.data.get('data')
+            req = Package.make(
+                tp=pkg.data['protocol'],
+                data=b'' if data is None else data,
+                is_binary=data is None
+            )
+            res = await State.rapp.request(req, timeout=5)
+            pkg = Package.make(
+                tp=HubProtocol.PROTO_RES_RAPP,
+                data=res,
+                pid=pkg.pid)
+
+        # write response
         self.transport.write(pkg.to_bytes())
 
     def _on_res_err(self, pkg: Package):
