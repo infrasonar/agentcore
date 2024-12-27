@@ -73,10 +73,7 @@ class RappProtocol(Protocol):
             data = pkg.read_data()
         except Exception as e:
             msg = str(e) or type(e).__name__
-            future.set_result({
-                'protocol': RappProtocol.PROTO_RAPP_ERR,
-                'data': {'reason': msg}
-            })
+            logging.error(msg)
         else:
             future.set_result({
                 'protocol': pkg.tp,

@@ -135,7 +135,7 @@ class HubProtocol(Protocol):
                 data={'protocol': RappProtocol.PROTO_RAPP_NO_CONNECTION},
                 pid=pkg.pid)
         else:
-            data = pkg.data.get('data')
+            data = pkg.data.get('data') or None
             req = Package.make(
                 tp=pkg.data['protocol'],
                 data=b'' if data is None else data,
