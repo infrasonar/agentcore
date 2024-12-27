@@ -25,134 +25,74 @@ class RappProtocol(Protocol):
         super().__init__()
         self.probe_key: Optional[str] = None
         self.version: Optional[str] = None
+        self.keepalive: Optional[asyncio.Future] = None
 
     def connection_made(self, transport: asyncio.Transport):  # type: ignore
         super().connection_made(transport)
-
-
+        if State.rapp is None:
+            logging.info('rapp connected')
+            State.rapp = self
+            self.keepalive = asyncio.ensure_future(self.keepalive_loop())
+        else:
+            logging.warning('rapp already connected')
+            transport.abort()
 
     def connection_lost(self, exc: Optional[Exception]):
-        logging.info(f'Connecion lost; probe collector: `{self.probe_key}`')
+        logging.info('rapp connecion lost')
         super().connection_lost(exc)
-        try:
-            State.probe_connections.remove(self)
-        except KeyError:
-            pass
+        if State.rapp is self:
+            try:
+                self.keepalive.cancel()
+            except Exception:
+                pass
+            self.keepalive = None
+            State.rapp = None
 
-    async def keepalive(self):
+    async def keepalive_loop(self):
+        pkg = Package.make(self.PROTO_RAPP_READ, is_binary=False)
         while True:
-            pkg = Package.make(self.PROTO_RAPP_PING, is_binary=True)
-        t0 = time.time()
-        try:
-            probe_timestamp = await self.request(pkg, timeout=10)
-        except Exception as e:
-            msg = str(e) or type(e).__name__
-            logging.error(msg)
-            probe_timestamp = 1  # don't want the heartbeat to fail
-
-        return {
-            'key': self.probe_key,
-            'version': self.version,
-            'timestamp': probe_timestamp,
-            'roundtrip': time.time() - t0,
-        }
-
-    def send_unset_assets(self, asset_ids: list):
-        assert self.transport is not None
-        resp_pkg = Package.make(
-            ProbeServerProtocol.PROTO_FAF_UNSET_ASSETS, data=asset_ids)
-        self.transport.write(resp_pkg.to_bytes())
-
-    def send_upsert_asset(self, asset: list):
-        assert self.transport is not None
-        resp_pkg = Package.make(
-            ProbeServerProtocol.PROTO_FAF_UPSERT_ASSET, data=asset)
-        self.transport.write(resp_pkg.to_bytes())
-
-    def send_set_assets(self, assets: list):
-        assert self.transport is not None
-        resp_pkg = Package.make(
-            ProbeServerProtocol.PROTO_FAF_SET_ASSETS, data=assets)
-        self.transport.write(resp_pkg.to_bytes())
-
-    def _on_faf_dump(self, pkg):
-        assert State.agentcore is not None
-        try:
-            State.agentcore.queue.put_nowait(pkg)
-        except asyncio.QueueFull:
-            logging.warning('hub queue full; drop first in queue')
+            await asyncio.sleep(3)
             try:
-                State.agentcore.queue.get_nowait()
-                State.agentcore.queue.put_nowait(pkg)
+                data = await self.request(pkg, timeout=10)
+                logging.debug(data)
+                logging.info('rapp keepalive')
+            except asyncio.CancelledError:
+                break
             except Exception as e:
                 msg = str(e) or type(e).__name__
-                logging.error(f'failed to add package to hub queue: {msg}')
+                logging.warning(f'error on ping rapp: {msg}')
+                try:
+                    self.transport.close()
+                except Exception:
+                    pass
+                break
 
-    def _on_req_announce(self, pkg: Package):
-        assert self.transport is not None
+    def _on_rapp(self, pkg: Package):
         try:
-            try:
-                name, version = pkg.read_data()
-            except Exception as e:
-                msg = str(e) or type(e).__name__
-                raise Exception(f'unpack announce response failed: {msg}')
-
-            logging.info(f'probe collector announce: {name} v{version}')
-
-            for conn in State.probe_connections:
-                if conn.probe_key == name:
-                    raise Exception(
-                        'got a double probe collector announcement: '
-                        f'{name} v{conn.version}; close the connection')
-
-            assets = State.probe_assets.get(name)
-            if assets is None:
-                logging.warning(
-                    f'no assets found for probe collector: {name}')
-                assets = []
-
-            resp_pkg = Package.make(
-                ProbeServerProtocol.PROTO_RES_ANNOUNCE,
-                pid=pkg.pid,
-                data=assets)
-
-            try:
-                self.transport.write(resp_pkg.to_bytes())
-            except Exception as e:
-                msg = str(e) or type(e).__name__
-                raise Exception(f'failed to write announce response: {msg}')
-
-            self.probe_key = name
-            self.version = version
-            State.probe_connections.add(self)
-
-        except Exception as e:
-            logging.error(f'{e}; close the connection')
-            try:
-                self.transport.close()
-            except Exception as e:
-                msg = str(e) or type(e).__name__
-                logging.error(f'attempt to close connection has failed: {msg}')
-
-    def _on_res_info(self, pkg: Package):
-        future = self._get_future(pkg)
-        if future is None:
-            return
-        try:
+            future = self._get_future(pkg)
+            assert future is not None, 'missing future; possible timeout'
             data = pkg.read_data()
         except Exception as e:
-            future.set_exception(e)
+            msg = str(e) or type(e).__name__
+            future.set_result({
+                'protocol': RappProtocol.PROTO_RAPP_ERR,
+                'data': {'reason': msg}
+            })
         else:
-            future.set_result(data)
+            future.set_result({
+                'protocol': pkg.tp,
+                'data': data
+            })
 
     def on_package_received(self, pkg: Package, _map={
-        PROTO_FAF_DUMP: _on_faf_dump,
-        PROTO_REQ_ANNOUNCE: _on_req_announce,
-        PROTO_RES_INFO: _on_res_info,
+        PROTO_RAPP_RES: _on_rapp,
+        PROTO_RAPP_BUSY: _on_rapp,
+        PROTO_RAPP_ERR: _on_rapp,
     }):
         handle = _map.get(pkg.tp)
         if handle is None:
             logging.error(f'unhandled package type: {pkg.tp}')
+            self.close()
         else:
             handle(self, pkg)
 

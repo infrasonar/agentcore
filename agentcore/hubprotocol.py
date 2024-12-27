@@ -4,6 +4,7 @@ import time
 from typing import Optional
 from .net.package import Package
 from .net.protocol import Protocol
+from .connection.rappprotocol import RappProtocol
 from .state import State
 from .version import __version__
 
@@ -80,12 +81,7 @@ class HubProtocol(Protocol):
         asyncio.ensure_future(self._req_info(pkg))
 
     def _on_req_rapp(self, pkg: Package):
-        if State.rapp is None or not State.rapp.is_connected():
-            Package.make(
-                HubProtocol.PROTO_RES_RAPP,
-                data: {'reason'})
-                protocol: 
-            pkg.data
+        asyncio.ensure_future(self._req_rapp(pkg))
 
     def _on_faf_upsert_asset(self, pkg: Package):
         try:
@@ -130,8 +126,29 @@ class HubProtocol(Protocol):
                 'version': __version__
             }
         )
-        assert self.transport is not None
         self.transport.write(resp_pkg.to_bytes())
+
+    async def _req_rapp(self, pkg: Package):
+        if State.rapp is None or not State.rapp.is_connected():
+            pkg = Package.make(
+                HubProtocol.PROTO_RES_RAPP,
+                data={'protocol': RappProtocol.PROTO_RAPP_NO_CONNECTION},
+                pid=pkg.pid)
+            self.transport.write(pkg.to_bytes())
+            return
+        data = pkg.data.get('data')
+        req = Package.make(
+            tp=pkg.data['protocol'],
+            data=b'' if data is None else data,
+            is_binary=data is None
+        )
+        res = await State.rapp.request(req, timeout=5)
+        pkg = Package.make(
+            tp=HubProtocol.PROTO_RES_RAPP,
+            data=res,
+            pid=pkg.pid,
+        )
+        self.transport.write(pkg.to_bytes())
 
     def _on_res_err(self, pkg: Package):
         future = self._get_future(pkg)
