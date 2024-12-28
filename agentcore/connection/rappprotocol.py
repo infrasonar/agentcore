@@ -38,11 +38,11 @@ class RappProtocol(Protocol):
             transport.abort()
 
     def connection_lost(self, exc: Optional[Exception]):
-        logging.info('rapp connecion lost')
+        logging.info('rapp connection lost')
         super().connection_lost(exc)
         if State.rapp is self:
             try:
-                self.keepalive.cancel()
+                self.keepalive.cancel()  # type: ignore
             except Exception:
                 pass
             self.keepalive = None
@@ -54,14 +54,14 @@ class RappProtocol(Protocol):
             await asyncio.sleep(20)
             try:
                 _ = await self.request(pkg, timeout=10)
-                logging.info('rapp keepalive')
+                logging.info('rapp keep-alive')
             except asyncio.CancelledError:
                 break
             except Exception as e:
                 msg = str(e) or type(e).__name__
                 logging.warning(f'error on ping rapp: {msg}')
                 try:
-                    self.transport.close()
+                    self.transport.close()  # type: ignore
                 except Exception:
                     pass
                 break

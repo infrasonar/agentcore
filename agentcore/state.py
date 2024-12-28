@@ -83,7 +83,7 @@ class State:
 
     @classmethod
     def set_assets(cls, assets: list):
-        """Overwites all the assets."""
+        """Overwrites all the assets."""
         assert cls.zones is not None  # is set after announce
         new = defaultdict(list)
         for asset_id, asset_zone, asset_name, probes in assets:

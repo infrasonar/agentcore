@@ -131,7 +131,7 @@ class Agentcore:
             self._connecting = False
 
     async def _ensure_write_pkg(self):
-        """This will write the "current" packe to the hub.
+        """This will write the "current" package to the hub.
         It will try as long as is required
         """
         assert self._pkg is not None

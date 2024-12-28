@@ -19,15 +19,15 @@ class HubProtocol(Protocol):
 
     PROTO_REQ_ANNOUNCE = 0x01
 
-    PROTO_FAF_SET_ASSETS = 0x02  # Overwites all assets
+    PROTO_FAF_SET_ASSETS = 0x02  # Overwrites all assets
 
     PROTO_REQ_INFO = 0x03
 
-    PROTO_FAF_UPSERT_ASSET = 0x04  # Overwite/Add a single asset
+    PROTO_FAF_UPSERT_ASSET = 0x04  # Overwrite/Add a single asset
 
     PROTO_FAF_UNSET_ASSETS = 0x05  # Remove given assets
 
-    PROTO_REQ_RAPP = 0x6  # Remote Appliace Request
+    PROTO_REQ_RAPP = 0x6  # Remote Appliance Request
 
     PROTO_RES_ANNOUNCE = 0x81
 
@@ -37,7 +37,7 @@ class HubProtocol(Protocol):
 
     PROTO_RES_OK = 0xe1
 
-    PROTO_RES_RAPP = 0xe2  # Remote Appliace Response
+    PROTO_RES_RAPP = 0xe2  # Remote Appliance Response
 
     def __init__(self):
         super().__init__()
@@ -128,6 +128,7 @@ class HubProtocol(Protocol):
                 'version': __version__
             }
         )
+        assert self.transport is not None
         self.transport.write(resp_pkg.to_bytes())
 
     async def _req_rapp(self, pkg: Package):
@@ -150,6 +151,7 @@ class HubProtocol(Protocol):
                 pid=pkg.pid)
 
         # write response
+        assert self.transport is not None
         self.transport.write(pkg.to_bytes())
 
     def _on_res_err(self, pkg: Package):
