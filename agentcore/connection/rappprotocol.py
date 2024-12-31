@@ -54,7 +54,7 @@ class RappProtocol(Protocol):
             await asyncio.sleep(20)
             try:
                 _ = await self.request(pkg, timeout=10)
-                logging.info('rapp keep-alive')
+                logging.debug('rapp keep-alive')
             except asyncio.CancelledError:
                 break
             except Exception as e:
