@@ -7,7 +7,7 @@ import msgpack
 from typing import Optional, Tuple
 from .loop import loop
 from .net.package import Package
-from .protocol import HubProtocol, RespException
+from .hubprotocol import HubProtocol, RespException
 from .state import State
 
 HUB_QUEUE_SIZE = 100_000
@@ -131,7 +131,7 @@ class Agentcore:
             self._connecting = False
 
     async def _ensure_write_pkg(self):
-        """This will write the "current" packe to the hub.
+        """This will write the "current" package to the hub.
         It will try as long as is required
         """
         assert self._pkg is not None

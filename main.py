@@ -1,4 +1,3 @@
-import asyncio
 import logging
 import os
 import sys
@@ -6,7 +5,7 @@ import socket
 import signal
 from setproctitle import setproctitle
 from agentcore.client import Agentcore
-from agentcore.connection import init_probe_server
+from agentcore.connection import init_probe_server, init_rapp
 from agentcore.logger import setup_logger
 from agentcore.loop import loop
 from agentcore.state import State
@@ -50,6 +49,7 @@ if __name__ == '__main__':
     State.agentcore = Agentcore()
 
     init_probe_server(loop)
+    init_rapp(loop)
 
     signal.signal(signal.SIGINT, stop)
     signal.signal(signal.SIGTERM, stop)
