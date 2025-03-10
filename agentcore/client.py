@@ -187,8 +187,14 @@ class Agentcore:
             State.agentcore_id = json.load(fp)
 
     def _dump_json(self):
-        with open(AGENTCORE_JSON_FN, 'w') as fp:
-            json.dump(State.agentcore_id, fp)
+        try:
+            with open(AGENTCORE_JSON_FN, 'w') as fp:
+                json.dump(State.agentcore_id, fp)
+        except Exception as e:
+            msg = str(e) or type(e).__name__
+            logging.warning(
+                f'failed to write `{AGENTCORE_JSON_FN}` ({msg}) '
+                '(this might be intentional when using a fixed static file)')
 
     def _read_queue(self):
         if self._pkg is not None:
