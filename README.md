@@ -22,4 +22,5 @@ Variable            | Default               | Description
 
 # Docker image
 
-The agentcore and probe collectors should be pinned to Docker image: `python:3.12.9`
+The agentcore and probe collectors should be pinned to Docker image: `python:3.12.9` 
+_(take the pre-latest version, for example when 3.13.2 is current, take 3.13.1 as the current tag might be pushed again)_
