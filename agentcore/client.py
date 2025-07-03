@@ -4,7 +4,7 @@ import logging
 import os
 import ssl
 import msgpack
-from typing import Optional, Tuple
+from typing import Optional, Tuple, Any
 from .loop import loop
 from .net.package import Package
 from .hubprotocol import HubProtocol, RespException
@@ -129,6 +129,23 @@ class Agentcore:
                     State.remove_assets_fn()
         finally:
             self._connecting = False
+
+    async def request(self, protocol: int, data: Any) -> Any:
+        pkg = Package.make(
+            protocol,
+            data=data
+        )
+        assert self._protocol
+        resp = await self._protocol.request(pkg, timeout=10)
+        return resp
+
+    async def upload_file(self, data: Any):
+        resp = await self.request(HubProtocol.PROTO_REQ_UPLOAD_FILE, data)
+        return resp
+
+    async def download_file(self, data: Any):
+        resp = await self.request(HubProtocol.PROTO_REQ_DOWNLOAD_FILE, data)
+        return resp
 
     async def _ensure_write_pkg(self):
         """This will write the "current" package to the hub.

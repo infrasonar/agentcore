@@ -21,11 +21,19 @@ class ProbeServerProtocol(Protocol):
 
     PROTO_FAF_UNSET_ASSETS = 0x05  # Remove given assets
 
+    PROTO_REQ_UPLOAD_FILE = 0x7
+
+    PROTO_REQ_DOWNLOAD_FILE = 0x8
+
     PROTO_RES_ANNOUNCE = 0x81
 
     PROTO_RES_INFO = 0x82
 
     PROTO_RES_ERR = 0xe0
+
+    PROTO_RES_UPLOAD_FILE = 0xe3
+
+    PROTO_RES_DOWNLOAD_FILE = 0x4
 
     def __init__(self):
         super().__init__()
@@ -145,10 +153,56 @@ class ProbeServerProtocol(Protocol):
         else:
             future.set_result(data)
 
+    def _on_upload_file(self, pkg: Package):
+        asyncio.ensure_future(self._upload_file(pkg))
+
+    async def _upload_file(self, pkg: Package):
+        data = pkg.read_data()
+        try:
+            resp = await State.upload_file(data)
+        except Exception as e:
+            msg = str(e) or type(e).__name__
+            resp_pkg = Package.make(
+                ProbeServerProtocol.PROTO_RES_ERR,
+                data=msg,
+                pid=pkg.pid)
+        else:
+            resp_pkg = Package.make(
+                ProbeServerProtocol.PROTO_RES_UPLOAD_FILE,
+                data=resp,
+                pid=pkg.pid)
+
+        if self.transport:
+            self.transport.write(resp_pkg.to_bytes())
+
+    def _on_download_file(self, pkg: Package):
+        asyncio.ensure_future(self._download_file(pkg))
+
+    async def _download_file(self, pkg: Package):
+        data = pkg.read_data()
+        try:
+            resp = await State.download_file(data)
+        except Exception as e:
+            msg = str(e) or type(e).__name__
+            resp_pkg = Package.make(
+                ProbeServerProtocol.PROTO_RES_ERR,
+                data=msg,
+                pid=pkg.pid)
+        else:
+            resp_pkg = Package.make(
+                ProbeServerProtocol.PROTO_RES_DOWNLOAD_FILE,
+                data=resp,
+                pid=pkg.pid)
+
+        if self.transport:
+            self.transport.write(resp_pkg.to_bytes())
+
     def on_package_received(self, pkg: Package, _map={
         PROTO_FAF_DUMP: _on_faf_dump,
         PROTO_REQ_ANNOUNCE: _on_req_announce,
         PROTO_RES_INFO: _on_res_info,
+        PROTO_REQ_UPLOAD_FILE: _on_upload_file,
+        PROTO_REQ_DOWNLOAD_FILE: _on_download_file,
     }):
         handle = _map.get(pkg.tp)
         if handle is None:

@@ -2,7 +2,7 @@ from __future__ import annotations
 import msgpack
 import logging
 import os
-from typing import Optional, Tuple, List, Set, Dict, TYPE_CHECKING
+from typing import Optional, Tuple, List, Set, Dict, TYPE_CHECKING, Any
 from collections import defaultdict
 from .zones import Zones
 if TYPE_CHECKING:
@@ -160,3 +160,15 @@ class State:
         assert cls.agentcore is not None
         cls.agentcore.close()
         cls.dump_probe_assets()
+
+    @classmethod
+    async def upload_file(cls, data: Any):
+        assert cls.agentcore
+        resp = await cls.agentcore.upload_file( data)
+        return resp
+
+    @classmethod
+    async def download_file(cls, data: Any):
+        assert cls.agentcore
+        resp = await cls.agentcore.download_file(data)
+        return resp

@@ -29,6 +29,10 @@ class HubProtocol(Protocol):
 
     PROTO_REQ_RAPP = 0x6  # Remote Appliance Request
 
+    PROTO_REQ_UPLOAD_FILE = 0x7
+
+    PROTO_REQ_DOWNLOAD_FILE = 0x8
+
     PROTO_RES_ANNOUNCE = 0x81
 
     PROTO_RES_INFO = 0x82
@@ -38,6 +42,10 @@ class HubProtocol(Protocol):
     PROTO_RES_OK = 0xe1
 
     PROTO_RES_RAPP = 0xe2  # Remote Appliance Response
+
+    PROTO_RES_UPLOAD_FILE = 0xe3
+
+    PROTO_RES_DOWNLOAD_FILE = 0x4
 
     def __init__(self):
         super().__init__()
@@ -172,6 +180,17 @@ class HubProtocol(Protocol):
             return
         future.set_result(None)
 
+    def _on_res_proxy(self, pkg):
+        future = self._get_future(pkg)
+        if future is None:
+            return
+        try:
+            data = pkg.read_data()
+        except Exception as e:
+            future.set_exception(e)
+        else:
+            future.set_result(data)
+
     def on_package_received(self, pkg: Package, _map={
         PROTO_RES_ANNOUNCE: _on_res_announce,
         PROTO_FAF_SET_ASSETS: _on_faf_set_assets,
@@ -181,6 +200,8 @@ class HubProtocol(Protocol):
         PROTO_FAF_UNSET_ASSETS: _on_faf_unset_assets,
         PROTO_RES_ERR: _on_res_err,
         PROTO_RES_OK: _on_res_ok,
+        PROTO_RES_UPLOAD_FILE: _on_res_proxy,
+        PROTO_RES_DOWNLOAD_FILE: _on_res_proxy,
     }):
         handle = _map.get(pkg.tp)
         if handle is None:
