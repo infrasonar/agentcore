@@ -164,7 +164,7 @@ class State:
     @classmethod
     async def upload_file(cls, data: Any):
         assert cls.agentcore
-        resp = await cls.agentcore.upload_file( data)
+        resp = await cls.agentcore.upload_file(data)
         return resp
 
     @classmethod
