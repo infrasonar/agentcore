@@ -21,9 +21,9 @@ class ProbeServerProtocol(Protocol):
 
     PROTO_FAF_UNSET_ASSETS = 0x05  # Remove given assets
 
-    PROTO_REQ_UPLOAD_FILE = 0x7
+    PROTO_REQ_UPLOAD_FILE = 0x07
 
-    PROTO_REQ_DOWNLOAD_FILE = 0x8
+    PROTO_REQ_DOWNLOAD_FILE = 0x08
 
     PROTO_RES_ANNOUNCE = 0x81
 
