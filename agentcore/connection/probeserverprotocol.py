@@ -33,7 +33,7 @@ class ProbeServerProtocol(Protocol):
 
     PROTO_RES_UPLOAD_FILE = 0xe3
 
-    PROTO_RES_DOWNLOAD_FILE = 0x4
+    PROTO_RES_DOWNLOAD_FILE = 0xe4
 
     def __init__(self):
         super().__init__()
