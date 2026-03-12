@@ -154,7 +154,9 @@ class HubProtocol(Protocol):
                 data=b'' if data is None else data,
                 is_binary=data is None
             )
-            res = await State.rapp.request(req, timeout=5)
+            # timeout for PROTO_RAPP_RX packets needs to be higher
+            timeout = 195 if pkg.data['protocol'] == 0x45 else 5
+            res = await State.rapp.request(req, timeout=timeout)
             pkg = Package.make(
                 tp=HubProtocol.PROTO_RES_RAPP,
                 data=res,
