@@ -29,6 +29,8 @@ class HubProtocol(Protocol):
 
     PROTO_REQ_RAPP = 0x6  # Remote Appliance Request
 
+    PROTO_REQ_RAPP_RX_LOG = 0x61
+
     PROTO_REQ_UPLOAD_FILE = 0x7
 
     PROTO_REQ_DOWNLOAD_FILE = 0x8
@@ -154,9 +156,7 @@ class HubProtocol(Protocol):
                 data=b'' if data is None else data,
                 is_binary=data is None
             )
-            # timeout for PROTO_RAPP_RX packets needs to be higher
-            timeout = 195 if pkg.data['protocol'] == 0x45 else 5
-            res = await State.rapp.request(req, timeout=timeout)
+            res = await State.rapp.request(req, timeout=5)
             pkg = Package.make(
                 tp=HubProtocol.PROTO_RES_RAPP,
                 data=res,

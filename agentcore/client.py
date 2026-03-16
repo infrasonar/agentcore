@@ -147,6 +147,10 @@ class Agentcore:
         resp = await self.request(HubProtocol.PROTO_REQ_DOWNLOAD_FILE, data)
         return resp
 
+    async def rapp_rx_log(self, data: Any):
+        resp = await self.request(HubProtocol.PROTO_REQ_RAPP_RX_LOG, data)
+        return resp
+
     async def _ensure_write_pkg(self):
         """This will write the "current" package to the hub.
         It will try as long as is required

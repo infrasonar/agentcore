@@ -172,3 +172,9 @@ class State:
         assert cls.agentcore
         resp = await cls.agentcore.download_file(data)
         return resp
+
+    @classmethod
+    async def rapp_rx_log(cls, data: Any):
+        assert cls.agentcore
+        resp = await cls.agentcore.rapp_rx_log(data)
+        return resp

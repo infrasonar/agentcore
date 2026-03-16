@@ -14,6 +14,8 @@ class RappProtocol(Protocol):
     PROTO_RAPP_PUSH = 0x42  # {..}
     PROTO_RAPP_UPDATE = 0x43  # None
     PROTO_RAPP_LOG = 0x44  # {"name": "wmi-probe", "start": 0}
+    PROTO_RAPP_RX = 0x45
+    PROTO_RAPP_RX_LOG = 0x46
 
     PROTO_RAPP_RES = 0x50  # {...} / null
     PROTO_RAPP_NO_AC = 0x51  # null
@@ -80,10 +82,18 @@ class RappProtocol(Protocol):
                 'data': data
             })
 
+    def _on_rapp_rx_log(self, pkg: Package):
+        asyncio.ensure_future(self._rapp_rx_log(pkg))
+
+    async def _rapp_rx_log(self, pkg: Package):
+        data = pkg.read_data()
+        await State.rapp_rx_log(data)
+
     def on_package_received(self, pkg: Package, _map={
         PROTO_RAPP_RES: _on_rapp,
         PROTO_RAPP_BUSY: _on_rapp,
         PROTO_RAPP_ERR: _on_rapp,
+        PROTO_RAPP_RX_LOG: _on_rapp_rx_log,
     }):
         handle = _map.get(pkg.tp)
         if handle is None:
