@@ -29,11 +29,11 @@ class HubProtocol(Protocol):
 
     PROTO_REQ_RAPP = 0x6  # Remote Appliance Request
 
-    PROTO_REQ_RAPP_RX_LOG = 0x61
-
     PROTO_REQ_UPLOAD_FILE = 0x7
 
     PROTO_REQ_DOWNLOAD_FILE = 0x8
+
+    PROTO_REQ_RX_LOG = 0x9
 
     PROTO_RES_ANNOUNCE = 0x81
 
