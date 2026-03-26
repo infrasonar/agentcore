@@ -172,3 +172,8 @@ class State:
         assert cls.agentcore
         resp = await cls.agentcore.download_file(data)
         return resp
+
+    @classmethod
+    def audit_log(cls, data: Any):
+        assert cls.agentcore
+        cls.agentcore.audit_log(data)
