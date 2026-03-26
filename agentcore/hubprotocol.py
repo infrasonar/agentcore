@@ -33,7 +33,7 @@ class HubProtocol(Protocol):
 
     PROTO_REQ_DOWNLOAD_FILE = 0x8
 
-    PROTO_REQ_RX_LOG = 0x9
+    PROTO_FAF_AUDIT_LOG = 0x60  # {"event": .., "script": .., "message": ..}
 
     PROTO_RES_ANNOUNCE = 0x81
 

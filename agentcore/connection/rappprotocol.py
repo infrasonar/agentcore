@@ -1,6 +1,5 @@
 import asyncio
 import logging
-import time
 from typing import Optional
 from ..net.package import Package
 from ..net.protocol import Protocol
@@ -14,14 +13,15 @@ class RappProtocol(Protocol):
     PROTO_RAPP_PUSH = 0x42  # {..}
     PROTO_RAPP_UPDATE = 0x43  # None
     PROTO_RAPP_LOG = 0x44  # {"name": "wmi-probe", "start": 0}
-    PROTO_RAPP_RX = 0x45
-    PROTO_RAPP_RX_LOG = 0x46
+    PROTO_RAPP_RX = 0x45  # {"script": "t.ps1", "env": {"X": "123"}}
 
     PROTO_RAPP_RES = 0x50  # {...} / null
     PROTO_RAPP_NO_AC = 0x51  # null
     PROTO_RAPP_NO_CONNECTION = 0x52  # null
     PROTO_RAPP_BUSY = 0x53  # null
     PROTO_RAPP_ERR = 0x54  # {"reason": "..."}
+
+    PROTO_FAF_AUDIT_LOG = 0x60  # {"event_id": 123, "message": "..."}
 
     def __init__(self):
         super().__init__()
@@ -82,18 +82,15 @@ class RappProtocol(Protocol):
                 'data': data
             })
 
-    def _on_rapp_rx_log(self, pkg: Package):
-        asyncio.ensure_future(self._rapp_rx_log(pkg))
-
-    async def _rapp_rx_log(self, pkg: Package):
+    def _on_audit_log(self, pkg: Package):
         data = pkg.read_data()
-        await State.rapp_rx_log(data)
+        State.audit_log(data)
 
     def on_package_received(self, pkg: Package, _map={
         PROTO_RAPP_RES: _on_rapp,
         PROTO_RAPP_BUSY: _on_rapp,
         PROTO_RAPP_ERR: _on_rapp,
-        PROTO_RAPP_RX_LOG: _on_rapp_rx_log,
+        PROTO_FAF_AUDIT_LOG: _on_audit_log,
     }):
         handle = _map.get(pkg.tp)
         if handle is None:

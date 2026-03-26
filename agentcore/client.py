@@ -147,9 +147,15 @@ class Agentcore:
         resp = await self.request(HubProtocol.PROTO_REQ_DOWNLOAD_FILE, data)
         return resp
 
-    async def rapp_rx_log(self, data: Any):
-        resp = await self.request(HubProtocol.PROTO_REQ_RX_LOG, data)
-        return resp
+    def audit_log(self, data: Any):
+        pkg = Package.make(
+            HubProtocol.PROTO_FAF_AUDIT_LOG,
+            data=data
+        )
+        if self._protocol and self._protocol.transport:
+            self._protocol.transport.write(pkg.to_bytes())
+        else:
+            logging.error('failed to write audit log, no connection with hub')
 
     async def _ensure_write_pkg(self):
         """This will write the "current" package to the hub.

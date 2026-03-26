@@ -174,7 +174,6 @@ class State:
         return resp
 
     @classmethod
-    async def rapp_rx_log(cls, data: Any):
+    def audit_log(cls, data: Any):
         assert cls.agentcore
-        resp = await cls.agentcore.rapp_rx_log(data)
-        return resp
+        cls.agentcore.audit_log(data)
