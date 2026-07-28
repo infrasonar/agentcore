@@ -18,9 +18,3 @@ Variable            | Default               | Description
 `LOG_LEVEL`         | `info`                | Log level (`debug`, `info`, `warning`, `error` or `critical`).
 `LOG_COLORIZED`     | `1`                   | Log using colors (`0`=disabled, `1`=enabled).
 `LOG_FTM`           | `%y%m%d %H:%M:%S`     | Log format prefix.
-
-
-# Docker image
-
-The agentcore and probe collectors should be pinned to Docker image: `python:3.12.9`
-_(take the pre-latest version, for example when 3.13.2 is current, take 3.13.1 as the current tag might be pushed again)_
